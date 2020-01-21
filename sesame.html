@@ -1,0 +1,247 @@
+<meta charset="utf-8">
+<style>
+*
+{
+    margin : 0;
+    padding : 0;
+    font-size : 2.5vh;
+}
+
+input, textarea
+{
+    width : 100%;
+    color : #000;
+    background-color : #eee;
+}
+
+textarea
+{
+    height: 40vh;
+}
+</style>
+<form autocomplete="off">
+    <textarea id="key-syntax" type="text" placeholder="Key Syntax" spellcheck="false"/>L=ABCDEFGHIJKLMNOPQRSTUVWXYZ&#10;l<L&#10;C=BCDFGHJKLMNPQRSTVWXZ&#10;c<C&#10;V=AEIOUY&#10;v<V&#10;H=0123456789ABCDEF&#10;h<H&#10;D=0123456789&#10;P=@<({[/=\]})>!?$%&#*-+.,;:_&#10;A:Ll&#10;X:ADP</textarea>
+    <br/>
+    <input id="key-template" type="text" placeholder="Key Template" value="CvcvcVcvcvcvXXXX"/>
+    <br/>
+    <input id="key-count" type="text" placeholder="Key Count" value="12"/>
+    <br/>
+    <textarea id="key-list" type="text" placeholder="Key List" spellcheck="false"/></textarea>
+</form>
+<button onclick="Generate()">Generate</button>
+<script>
+    // -- FUNCTIONS
+
+    function GetRandomReal(
+        )
+    {
+        var
+            random_count,
+            random_index,
+            random_real;
+
+        random_count = 1 + ( ( Date.now() + Math.floor( Math.random() * 65536 ) ) & 127 );
+
+        for ( random_index = 0;
+              random_index < random_count;
+              ++random_index )
+        {
+            random_real = Math.random();
+        }
+
+        return random_real;
+    }
+
+
+    function GetRandomNatural(
+        post_integer
+        )
+    {
+        return Math.floor( GetRandomReal() * post_integer );
+    }
+
+    // ~~
+
+    function GetRandomBoolean(
+        )
+    {
+        return GetRandomNatural( 100 ) >= 50;
+    }
+
+    // ~~
+
+    function GetRandomCharacter(
+        character_pool
+        )
+    {
+        return character_pool.charAt( GetRandomNatural( character_pool.length ) );
+    }
+
+    // ~~
+
+    function GetCharacterPool(
+        template,
+        character_pool_map
+        )
+    {
+        var
+            character_pool,
+            template_character,
+            template_character_index;
+
+        character_pool = "";
+
+        for ( template_character_index = 0;
+              template_character_index < template.length;
+              ++template_character_index )
+        {
+            template_character = template.charAt( template_character_index );
+
+            if ( character_pool_map.has( template_character ) )
+            {
+                character_pool += character_pool_map.get( template_character );
+            }
+            else
+            {
+                character_pool += template_character;
+            }
+        }
+
+        return character_pool;
+    }
+
+    // ~~
+
+    function GetCharacterPoolMap(
+        key_syntax
+        )
+    {
+        var
+            character,
+            character_pool,
+            character_pool_map,
+            line,
+            line_array,
+            line_index,
+            operator;
+
+        character_pool_map = new Map();
+
+        line_array = key_syntax.split( "\r" ).join( "" ).split( "\n" );
+
+        for ( line_index = 0;
+              line_index < line_array.length;
+              ++line_index )
+        {
+            line = line_array[ line_index ];
+
+            if ( line.length >= 3
+                 && "=:<>".indexOf( line.charAt( 1 ) ) >= 0 )
+            {
+                character = line.charAt( 0 );
+                operator = line.charAt( 1 );
+                character_pool = line.substring( 2 );
+
+                if ( operator === ':' )
+                {
+                    character_pool = GetCharacterPool( character_pool, character_pool_map );
+                }
+                else if ( operator === '<' )
+                {
+                    character_pool = GetCharacterPool( character_pool, character_pool_map ).toLowerCase();
+                }
+                else if ( operator === '>' )
+                {
+                    character_pool = GetCharacterPool( character_pool, character_pool_map ).toUpperCase();
+                }
+
+                character_pool_map.set( character, character_pool );
+            }
+        }
+
+        return character_pool_map;
+    }
+
+    // ~~
+
+    function GetKey(
+        template,
+        character_pool_map
+        )
+    {
+        var
+            key,
+            key_character,
+            template_character,
+            template_character_index,
+            template_character_is_used;
+
+        key = "";
+        template_character_is_used = true;
+
+        for ( template_character_index = 0;
+              template_character_index < template.length;
+              ++template_character_index )
+        {
+            template_character = template.charAt( template_character_index );
+            key_character = "";
+
+            if ( template_character == '[' )
+            {
+                template_character_is_used = GetRandomBoolean();
+            }
+            else if ( template_character == ']' )
+            {
+                template_character_is_used = true;
+            }
+            else if ( character_pool_map.has( template_character ) )
+            {
+                key_character = GetRandomCharacter( character_pool_map.get( template_character ) );
+            }
+            else
+            {
+                key_character = template_character;
+            }
+
+            key += key_character;
+        }
+
+        return key;
+    }
+
+    // ~~
+
+    function Generate(
+        )
+    {
+        var
+            character_pool_map,
+            key_array,
+            key_count,
+            key_index,
+            key_syntax,
+            key_template;
+
+        key_syntax = document.getElementById( "key-syntax" ).value;
+        key_template = document.getElementById( "key-template" ).value;
+        key_count = document.getElementById( "key-count" ).value;
+        key_array = [];
+
+        if ( key_syntax !== ""
+             && key_template !== ""
+             && key_count !== ""
+             && key_count > 0 )
+        {
+            character_pool_map = GetCharacterPoolMap( key_syntax );
+
+            for ( key_index = 0;
+                  key_index < key_count;
+                  ++key_index )
+            {
+                key_array.push( GetKey( key_template, character_pool_map ) );
+            }
+        }
+
+        document.getElementById( "key-list" ).value = key_array.join( '\n' );
+    }
+</script>
