@@ -22,7 +22,7 @@ textarea
 <form autocomplete="off">
     <textarea id="key-syntax" type="text" placeholder="Key Syntax" spellcheck="false"/>L=ABCDEFGHIJKLMNOPQRSTUVWXYZ&#10;l<L&#10;C=BCDFGHJKLMNPQRSTVWXZ&#10;c<C&#10;V=AEIOUY&#10;v<V&#10;H=0123456789ABCDEF&#10;h<H&#10;D=0123456789&#10;P=@<({[/=\]})>!?$%&#*-+.,;:_&#10;T:Ll&#10;A:TD&#10;X:AP</textarea>
     <br/>
-    <input id="key-template" type="text" placeholder="Key Template" value="CvcvcPVcvcvcvPAAAAXXXX"/>
+    <input id="key-template" type="text" placeholder="Key Template" value="CvcvcPVcvcvcvPAAAAXXXX Cvcv[[cv]cv]PVcvc[[vc]vc]PXPX[PX][PX]"/>
     <br/>
     <input id="key-count" type="text" placeholder="Key Count" value="12"/>
     <br/>
@@ -164,7 +164,7 @@ textarea
 
     // ~~
 
-    function GetKey(
+    function GetRandomKey(
         template,
         character_pool_map
         )
@@ -174,33 +174,41 @@ textarea
             key_character,
             template_character,
             template_character_index,
-            template_character_is_used;
+            template_character_is_used,
+            template_character_is_used_array;
 
         key = "";
-        template_character_is_used = true;
+        template_character_is_used_array = [ true ];
 
         for ( template_character_index = 0;
               template_character_index < template.length;
               ++template_character_index )
         {
             template_character = template.charAt( template_character_index );
+            template_character_is_used = template_character_is_used_array[ template_character_is_used_array.length - 1 ];
+
             key_character = "";
 
             if ( template_character == '[' )
             {
-                template_character_is_used = GetRandomBoolean();
+                template_character_is_used_array.push(
+                    template_character_is_used
+                    && GetRandomBoolean() );
             }
             else if ( template_character == ']' )
             {
-                template_character_is_used = true;
+                template_character_is_used_array.pop();
             }
-            else if ( character_pool_map.has( template_character ) )
+            else if ( template_character_is_used )
             {
-                key_character = GetRandomCharacter( character_pool_map.get( template_character ) );
-            }
-            else
-            {
-                key_character = template_character;
+                if ( character_pool_map.has( template_character ) )
+                {
+                    key_character = GetRandomCharacter( character_pool_map.get( template_character ) );
+                }
+                else
+                {
+                    key_character = template_character;
+                }
             }
 
             key += key_character;
@@ -238,7 +246,7 @@ textarea
                   key_index < key_count;
                   ++key_index )
             {
-                key_array.push( GetKey( key_template, character_pool_map ) );
+                key_array.push( GetRandomKey( key_template, character_pool_map ) );
             }
         }
 
