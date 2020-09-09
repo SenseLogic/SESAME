@@ -4,7 +4,7 @@
 {
     margin : 0;
     padding : 0;
-    font-size : 2.5vh;
+    font-size : 2vh;
 }
 
 input, textarea
@@ -20,9 +20,9 @@ textarea
 }
 </style>
 <form autocomplete="off">
-    <textarea id="key-syntax" type="text" placeholder="Key Syntax" spellcheck="false"/>L=ABCDEFGHIJKLMNOPQRSTUVWXYZ&#10;l<L&#10;C=BCDFGHJKLMNPQRSTVWXZ&#10;c<C&#10;V=AEIOUY&#10;v<V&#10;H=0123456789ABCDEF&#10;h<H&#10;D=0123456789&#10;P=@<({[/=\]})>!?$%&#*-+.,;:_&#10;T:Ll&#10;A:TD&#10;X:AP</textarea>
+    <textarea id="key-syntax" type="text" placeholder="Key Syntax" spellcheck="false"/>L=ABCDEFGHIJKLMNOPQRSTUVWXYZ&#10;l<L&#10;C=BCDFGHJKLMNPQRSTVWXZ&#10;c<C&#10;V=AEIOUY&#10;v<V&#10;w#ai|au|ay|ee|ei|eu|ia|ie|io|iu|oa|oe|oi|oo|ou|oy|ua|ue|ui|uo|ya|ye|yi|yo|yu&#10;W@w&#10;U:VVVVVVW&#10;u<U&#10;H=0123456789ABCDEF&#10;h<H&#10;D=0123456789&#10;P=@<({[/=\]})>!?$%&#*-+.,;:_&#10;T:Ll&#10;A:TD&#10;X:AP</textarea>
     <br/>
-    <input id="key-template" type="text" placeholder="Key Template" value="TTTTTTTTTTTTTTTT AAAAAAAAAAAAAAAA AAAAAAAAAAAAXXXX CvcvcPVcvcvcvPAAAAXXXX Cvcv[[cv]cv]PVcvc[[vc]vc]PXPX[PX][PX]"/>
+    <input id="key-template" type="text" placeholder="Key Template" value="TTTTTTTTTTTTTTTT AAAAAAAAAAAAAAAA AAAAAAAAAAAAXXXX CvcvcPVcvcvcvPAAAAXXXX Cucu[[cu]cu]PUcuc[[uc]uc]PXPX[PX][PX]"/>
     <br/>
     <input id="key-count" type="text" placeholder="Key Count" value="12"/>
     <br/>
@@ -74,7 +74,7 @@ textarea
         character_pool
         )
     {
-        return character_pool.charAt( GetRandomNatural( character_pool.length ) );
+        return character_pool[ GetRandomNatural( character_pool.length ) ];
     }
 
     // ~~
@@ -89,7 +89,7 @@ textarea
             template_character,
             template_character_index;
 
-        character_pool = "";
+        character_pool = [];
 
         for ( template_character_index = 0;
               template_character_index < template.length;
@@ -99,12 +99,75 @@ textarea
 
             if ( character_pool_map.has( template_character ) )
             {
-                character_pool += character_pool_map.get( template_character );
+                character_pool = character_pool.concat( character_pool_map.get( template_character ) );
             }
             else
             {
-                character_pool += template_character;
+                character_pool.push( template_character );
             }
+        }
+
+        return character_pool;
+    }
+
+    // ~~
+
+    function GetLowerCaseCharacterPool(
+        template,
+        character_pool_map
+        )
+    {
+        var
+            character,
+            character_pool;
+
+        character_pool = [];
+
+        for ( character of GetCharacterPool( template, character_pool_map ) )
+        {
+            character_pool.push( character.toLowerCase() );
+        }
+
+        return character_pool;
+    }
+
+    // ~~
+
+    function GetUpperCaseCharacterPool(
+        template,
+        character_pool_map
+        )
+    {
+        var
+            character,
+            character_pool;
+
+        character_pool = [];
+
+        for ( character of GetCharacterPool( template, character_pool_map ) )
+        {
+            character_pool.push( character.toUpperCase() );
+        }
+
+        return character_pool;
+    }
+
+    // ~~
+
+    function GetCapitalCaseCharacterPool(
+        template,
+        character_pool_map
+        )
+    {
+        var
+            character,
+            character_pool;
+
+        character_pool = [];
+
+        for ( character of GetCharacterPool( template, character_pool_map ) )
+        {
+            character_pool.push( character.substring( 0, 1 ).toUpperCase() + character.substring( 1 ).toLowerCase() );
         }
 
         return character_pool;
@@ -120,6 +183,7 @@ textarea
             character,
             character_pool,
             character_pool_map,
+            character_pool_text,
             line,
             line_array,
             line_index,
@@ -136,23 +200,35 @@ textarea
             line = line_array[ line_index ];
 
             if ( line.length >= 3
-                 && "=:<>".indexOf( line.charAt( 1 ) ) >= 0 )
+                 && "=#:<>@".indexOf( line.charAt( 1 ) ) >= 0 )
             {
                 character = line.charAt( 0 );
                 operator = line.charAt( 1 );
-                character_pool = line.substring( 2 );
+                character_pool_text = line.substring( 2 );
 
-                if ( operator === ':' )
+                if ( operator === '=' )
                 {
-                    character_pool = GetCharacterPool( character_pool, character_pool_map );
+                    character_pool = character_pool_text.split( "" );
+                }
+                else if ( operator === '#' )
+                {
+                    character_pool = character_pool_text.split( "|" );
+                }
+                else if ( operator === ':' )
+                {
+                    character_pool = GetCharacterPool( character_pool_text, character_pool_map );
                 }
                 else if ( operator === '<' )
                 {
-                    character_pool = GetCharacterPool( character_pool, character_pool_map ).toLowerCase();
+                    character_pool = GetLowerCaseCharacterPool( character_pool_text, character_pool_map );
                 }
                 else if ( operator === '>' )
                 {
-                    character_pool = GetCharacterPool( character_pool, character_pool_map ).toUpperCase();
+                    character_pool = GetUpperCaseCharacterPool( character_pool_text, character_pool_map );
+                }
+                else if ( operator === '@' )
+                {
+                    character_pool = GetCapitalCaseCharacterPool( character_pool_text, character_pool_map );
                 }
 
                 character_pool_map.set( character, character_pool );
