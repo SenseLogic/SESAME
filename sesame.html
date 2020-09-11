@@ -20,7 +20,7 @@ textarea
 }
 </style>
 <form autocomplete="off">
-    <textarea id="key-syntax" type="text" placeholder="Key Syntax" spellcheck="false"/>L=ABCDEFGHIJKLMNOPQRSTUVWXYZ&#10;l<L&#10;C=BCDFGHJKLMNPQRSTVWXZ&#10;c<C&#10;V=AEIOUY&#10;v<V&#10;w#ai|au|ay|ee|ei|eu|ia|ie|io|iu|oa|oe|oi|oo|ou|oy|ua|ue|ui|uo|ya|ye|yi|yo|yu&#10;W@w&#10;U:VVVVVVW&#10;u<U&#10;H=0123456789ABCDEF&#10;h<H&#10;D=0123456789&#10;P=@<({[/=\]})>!?$%&#*-+.,;:_&#10;T:Ll&#10;A:TD&#10;X:AP</textarea>
+    <textarea id="key-syntax" type="text" placeholder="Key Syntax" spellcheck="false"/>L=ABCDEFGHIJKLMNOPQRSTUVWXYZ&#10;l<L&#10;C=BCDFGHJKLMNPQRSTVWXZ&#10;c<C&#10;V=AEIOUY&#10;v<V&#10;w|ai|au|ay|ee|ei|eu|ia|ie|io|iu|oa|oe|oi|oo|ou|oy|ua|ue|ui|uo|ya|ye|yi|yo|yu&#10;W^w&#10;U:VVVVVVW&#10;u<U&#10;H=0123456789ABCDEF&#10;h<H&#10;D=0123456789&#10;P=@<({[/=\]})>!?$%&|#*+-~.,;:_&#10;T:Ll&#10;A:TD&#10;X:AP</textarea>
     <br/>
     <input id="key-template" type="text" placeholder="Key Template" value="TTTTTTTTTTTTTTTT AAAAAAAAAAAAAAAA AAAAAAAAAAAAXXXX CvcvcPVcvcvcvPAAAAXXXX Cucu[[cu]cu]PUcuc[[uc]uc]PXPX[PX][PX]"/>
     <br/>
@@ -199,22 +199,13 @@ textarea
         {
             line = line_array[ line_index ];
 
-            if ( line.length >= 3
-                 && "=#:<>@".indexOf( line.charAt( 1 ) ) >= 0 )
+            if ( line.length >= 2 )
             {
                 character = line.charAt( 0 );
                 operator = line.charAt( 1 );
                 character_pool_text = line.substring( 2 );
 
-                if ( operator === '=' )
-                {
-                    character_pool = character_pool_text.split( "" );
-                }
-                else if ( operator === '#' )
-                {
-                    character_pool = character_pool_text.split( "|" );
-                }
-                else if ( operator === ':' )
+                if ( operator === ':' )
                 {
                     character_pool = GetCharacterPool( character_pool_text, character_pool_map );
                 }
@@ -226,10 +217,19 @@ textarea
                 {
                     character_pool = GetUpperCaseCharacterPool( character_pool_text, character_pool_map );
                 }
-                else if ( operator === '@' )
+                else if ( operator === '^' )
                 {
                     character_pool = GetCapitalCaseCharacterPool( character_pool_text, character_pool_map );
                 }
+                else if ( operator === '=' )
+                {
+                    character_pool = character_pool_text.split( "" );
+                }
+                else
+                {
+                    character_pool = character_pool_text.split( operator );
+                }
+
 
                 character_pool_map.set( character, character_pool );
             }
